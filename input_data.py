@@ -13,12 +13,12 @@ def get_num(filepath):
 
 	train_size = 0
 	test_size = 0
-	# 训练集在3个文件夹中，每个文件夹中数据数相同，总数目乘3可得
-	dirs = os.listdir(filepath + '/' + str(2))
+	# 训练集在3个文件夹中，每个文件夹中数据数几乎相同，总数目乘3可得
+	dirs = os.listdir(filepath + '/' + str(1))
 	train_size += len(dirs)
 
 	# 测试集在1个文件夹中
-	dirs = os.listdir(filepath + '/' + str(1))
+	dirs = os.listdir(filepath + '/' + str(4))
 	test_size += len(dirs)
 
 	return train_size, test_size
@@ -60,6 +60,11 @@ def train_next_batch(filepath, step, batch_size):
 		for filename in dirs[current_file_num:train_size]:
 			# 取出图像
 			image = np.load(filepath + '/' + str(current_file) + '/' + filename + '/lesion_voxel.npy')
+			# 为了防止显存不够，每个病人最多只随机取一定数量照片
+			if image.shape[0] >= 32 / batch_size:
+				perm0 = np.arange(image.shape[0])
+				np.random.shuffle(perm0)
+				image = image[perm0[0:int(32/batch_size)],:,:]
 			# image = image.reshape((1, -1))
 			if filename == dirs[current_file_num]:
 				images = image
@@ -88,6 +93,10 @@ def train_next_batch(filepath, step, batch_size):
 			# print('last file: ', filepath, '/', str(next_file), '/', filename)
 			# 取出图像
 			image = np.load(filepath + '/' + str(next_file) + '/' + filename + '/lesion_voxel.npy')
+			if image.shape[0] >= 32 / batch_size:
+				perm0 = np.arange(image.shape[0])
+				np.random.shuffle(perm0)
+				image = image[perm0[0:int(32/batch_size)],:,:]
 			# image = image.reshape((1, -1))
 			images = np.vstack((images, image))
 			voxel.append(image.shape[0])
@@ -106,6 +115,10 @@ def train_next_batch(filepath, step, batch_size):
 		for filename in dirs[current_file_num:(current_file_num + batch_size)]:
 			# 取出图像
 			image = np.load(filepath + '/' + str(current_file) + '/' + filename + '/lesion_voxel.npy')
+			if image.shape[0] >= 32 / batch_size:
+				perm0 = np.arange(image.shape[0])
+				np.random.shuffle(perm0)
+				image = image[perm0[0:int(32/batch_size)],:,:]
 			# image = image.reshape((1, -1))
 			if filename == dirs[current_file_num]:
 				images = image
@@ -135,6 +148,10 @@ def test_next_batch(filepath, step):
 	for filename in dirs[current_num:(current_num + 300)]:
 		# 取出图像
 		image = np.load(filepath + '/' + str(4) + '/' + filename + '/lesion_voxel.npy')
+		if image.shape[0] >= 32 / batch_size:
+				perm0 = np.arange(image.shape[0])
+				np.random.shuffle(perm0)
+				image = image[perm0[0:int(32/batch_size)],:,:]
 		# image = image.reshape((1, -1))
 		if filename == dirs[current_num]:
 			images = image
